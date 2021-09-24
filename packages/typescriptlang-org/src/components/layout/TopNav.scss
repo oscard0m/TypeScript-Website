@@ -109,6 +109,7 @@
 form.search {
   height: 3rem;
   background-color: $ts-main-blue-darker-color;
+  border-radius: 3px 0px 0px 3px;
 
   padding-left: 1rem;
   display: inline-block;
@@ -285,7 +286,7 @@ form.search {
     right: 0px;
 
     /* Makes search elements full width */
-    li.nav-item {
+    .nav-item {
       display: block;
     }
 

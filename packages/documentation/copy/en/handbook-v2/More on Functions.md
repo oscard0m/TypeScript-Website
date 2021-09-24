@@ -103,7 +103,7 @@ In TypeScript, _generics_ are used when we want to describe a correspondence bet
 We do this by declaring a _type parameter_ in the function signature:
 
 ```ts twoslash
-function firstElement<Type>(arr: Type[]): Type {
+function firstElement<Type>(arr: Type[]): Type | undefined {
   return arr[0];
 }
 ```
@@ -112,12 +112,14 @@ By adding a type parameter `Type` to this function and using it in two places, w
 Now when we call it, a more specific type comes out:
 
 ```ts twoslash
-declare function firstElement<Type>(arr: Type[]): Type;
+declare function firstElement<Type>(arr: Type[]): Type | undefined;
 // ---cut---
 // s is of type 'string'
 const s = firstElement(["a", "b", "c"]);
 // n is of type 'number'
 const n = firstElement([1, 2, 3]);
+// u is of type undefined
+const u = firstElement([]);
 ```
 
 ### Inference
@@ -163,7 +165,7 @@ function longest<Type extends { length: number }>(a: Type, b: Type) {
 
 // longerArray is of type 'number[]'
 const longerArray = longest([1, 2], [1, 2, 3]);
-// longerString is of type 'string'
+// longerString is of type 'alice' | 'bob'
 const longerString = longest("alice", "bob");
 // Error! Numbers don't have a 'length' property
 const notOK = longest(10, 100);
@@ -298,7 +300,7 @@ That's always a red flag, because it means callers wanting to specify type argum
 
 #### Type Parameters Should Appear Twice
 
-Sometimes we forget that function doesn't need to be generic:
+Sometimes we forget that a function might not need to be generic:
 
 ```ts twoslash
 function greet<Str extends string>(s: Str) {
@@ -560,13 +562,13 @@ interface User {
   admin: boolean;
 }
 declare const getDB: () => DB;
+// ---cut---
 interface DB {
   filterUsers(filter: (this: User) => boolean): User[];
 }
 
-// ---cut---
 const db = getDB();
-const admins = db.filterUsers(function () {
+const admins = db.filterUsers(function (this: User) {
   return this.admin;
 });
 ```
@@ -580,13 +582,13 @@ interface User {
   isAdmin: boolean;
 }
 declare const getDB: () => DB;
+// ---cut---
 interface DB {
   filterUsers(filter: (this: User) => boolean): User[];
 }
 
-// ---cut---
 const db = getDB();
-const admins = db.filterUsers(() => this.isAdmin);
+const admins = db.filterUsers(() => this.admin);
 ```
 
 ## Other Types to Know About
@@ -614,7 +616,7 @@ There are further details at the end of this chapter.
 
 ### `object`
 
-The special type `object` refers to any value that isn't a primitive (`string`, `number`, `boolean`, `symbol`, `null`, or `undefined`).
+The special type `object` refers to any value that isn't a primitive (`string`, `number`, `bigint`, `boolean`, `symbol`, `null`, or `undefined`).
 This is different from the _empty object type_ `{ }`, and also different from the global type `Object`.
 It's very likely you will never use `Object`.
 
@@ -751,7 +753,7 @@ const args = [8, 5] as const;
 const angle = Math.atan2(...args);
 ```
 
-Using rest arguments may require turning on [`downlevelIteration`](/tsconfig/#downlevelIteration) when targeting older runtimes.
+Using rest arguments may require turning on [`downlevelIteration`](/tsconfig#downlevelIteration) when targeting older runtimes.
 
 <!-- TODO link to downlevel iteration -->
 

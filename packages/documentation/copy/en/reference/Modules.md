@@ -143,7 +143,7 @@ import { APIResponseType } from "./api";
 import type { APIResponseType } from "./api";
 ```
 
-`import type` is always guaranteed to be removed from your JavaScript, and tools like Babel can make better assumptions about your code via the `isolatedModules` compiler flag.
+`import type` is always guaranteed to be removed from your JavaScript, and tools like Babel can make better assumptions about your code via the [`isolatedModules`](/tsconfig#isolatedModules) compiler flag.
 You can read more in the [3.8 release notes](https://devblogs.microsoft.com/typescript/announcing-typescript-3-8-beta/#type-only-imports-exports).
 
 ## Default exports
@@ -554,7 +554,7 @@ Now we can `/// <reference>` `node.d.ts` and then load the modules using `import
 ```ts
 /// <reference path="node.d.ts"/>
 import * as URL from "url";
-let myUrl = URL.parse("http://www.typescriptlang.org");
+let myUrl = URL.parse("https://www.typescriptlang.org");
 ```
 
 ### Shorthand ambient modules

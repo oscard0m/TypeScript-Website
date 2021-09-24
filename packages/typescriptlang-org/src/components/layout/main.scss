@@ -8,6 +8,7 @@
   --background-minor-highlight-color: #343434;
   --inline-code-background-color: rgb(58, 58, 92, 0.7);
   --link-color: #{$ts-main-blue-lightest-color};
+  --pure-background: black;
   --raised-background-color: #{$ts-dark-bg-for-foreground-color};
   --alt-text-color: #fff;
   --raised-box-shadow: 0 1.6px 3.6px 0 rgba(255, 255, 255, 0.132),
@@ -28,6 +29,8 @@
   --playground-pre-color: white;
   --table-border-color: #545454;
   --playground-pre-bg: #1e1e1e;
+  --blue-tinged-bg: #2c3841;
+  --blue-tinged-strong: #273f52;
   --footer-arrow-color: $ts-light-bg-grey-highlight-color;
   --fade-gradient: linear-gradient(
     0deg,
@@ -40,6 +43,7 @@ html,
 html.light-theme {
   // light theme
   --background-color: #{$ts-light-bg-sandy-color};
+  --pure-background: white;
   --text-color: #333;
   --border-color: #eee;
   --background-minor-highlight-color: #fcfcfc;
@@ -66,6 +70,8 @@ html.light-theme {
   --playground-pre-bg: #f7f7f7;
   --footer-arrow-color: $ts-dark-bg-for-foreground-color;
   --table-border-color: #f1f1f1;
+  --blue-tinged-bg: #e6f2fb;
+  --blue-tinged-strong: #cce4f6;
   --fade-gradient: linear-gradient(
     0deg,
     rgba(255, 255, 255, 1) 0%,

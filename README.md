@@ -65,7 +65,6 @@ The main website for TypeScript, a Gatsby website which is statically deployed. 
 yarn start
 ```
 
-To save your time, twoslash is not applied to code-samples in `yarn start` - to launch the server with twoslash support use: `yarn start-twoslash`.
 To optimize even more, the env var `NO_TRANSLATIONS` as truthy will make the website only load pages for English.
 
 ## Sandbox
@@ -105,6 +104,16 @@ yarn workspace tsconfig-reference run lint resolveJson
 ## Documentation
 
 The docs for TypeScript. Originally ported over from [microsoft/TypeScript-Handbook](https://github.com/microsoft/TypeScript-Handbook/) then intermingled with [microsoft/TypeScript-New-Handbook](https://github.com/microsoft/TypeScript-New-Handbook), and finally updated for [Twoslash](http://www.staging-typescript.org/dev/twoslash/) and with new content.
+
+## JSON Schema
+
+It's a little odd, but the `tsconfig-reference` package creates the JSON schema for a TSConfig files:
+
+```sh
+yarn workspace tsconfig-reference build
+```
+
+Then you can find it at: [`packages/tsconfig-reference/scripts/schema/result/schema.json`](packages/tsconfig-reference/scripts/schema/result/schema.json).
 
 ## Playground Examples
 

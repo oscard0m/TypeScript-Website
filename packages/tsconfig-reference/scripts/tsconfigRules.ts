@@ -1,4 +1,5 @@
 import { CompilerOptionName } from "../data/_types";
+import * as ts from "typescript";
 
 /**
  * Changes to these rules should be reflected in the following files:
@@ -16,6 +17,9 @@ export const denyList: CompilerOptionName[] = [
   "build",
   "project",
   "locale",
+  "clean",
+  "dry",
+  "enableAutoDiscovery",
 ];
 
 /** Things we should document, but really want to help move people away from */
@@ -23,12 +27,27 @@ export const deprecated: CompilerOptionName[] = [
   "out",
   "charset",
   "keyofStringsOnly",
-  "noErrorTruncation",
   "diagnostics",
 ];
 
 /** Things which people really shouldn't use, but need to document  */
 export const internal: CompilerOptionName[] = ["preserveWatchOutput", "stripInternal"];
+
+// @ts-ignore
+// prettier-ignore
+export const typeAcquisitionCompilerOptNames: string[] = ts.typeAcquisitionDeclarations.map((c) => c.name);
+
+// @ts-ignore
+export const watchOptionCompilerOptNames: string[] = ts.optionsForWatch.map((c) => c.name);
+
+// @ts-ignore
+const common = ts.commonOptionsWithBuild;
+// @ts-ignore
+export const buildOptionCompilerOptNames: string[] = ts.buildOpts
+  .filter((c) => !common.includes(c))
+  .map((c) => c.name);
+
+export const rootOptNames = ["files", "extends", "include", "exclude", "references"];
 
 /** You should use this! They are off by default */
 export const recommended: CompilerOptionName[] = [
@@ -43,10 +62,25 @@ export const recommended: CompilerOptionName[] = [
   "noImplicitAny",
   "esModuleInterop",
   "skipLibCheck",
+  "exactOptionalPropertyTypes",
 ];
 
 type RootProperties = "files" | "extends" | "include" | "exclude";
-type WatchProperties = "watchFile" | "watchDirectory" | "fallbackPolling";
+type WatchProperties =
+  | "force"
+  | "watchFile"
+  | "watchDirectory"
+  | "fallbackPolling"
+  | "synchronousWatchDirectory"
+  | "excludeFiles"
+  | "excludeDirectories";
+type BuildProperties =
+  | "dry"
+  | "force"
+  | "verbose"
+  | "incremental"
+  | "assumeChangesOnlyAffectDirectDependencies"
+  | "traceResolution";
 
 type AnOption = WatchProperties | RootProperties | CompilerOptionName;
 
@@ -62,6 +96,7 @@ export const relatedTo: [AnOption, AnOption[]][] = [
       "strictPropertyInitialization",
       "noImplicitAny",
       "noImplicitThis",
+      "useUnknownInCatchVariables",
     ],
   ],
   ["alwaysStrict", ["strict"]],
@@ -71,6 +106,7 @@ export const relatedTo: [AnOption, AnOption[]][] = [
   ["strictPropertyInitialization", ["strict"]],
   ["noImplicitAny", ["strict"]],
   ["noImplicitThis", ["strict"]],
+  ["useUnknownInCatchVariables", ["strict"]],
 
   ["allowSyntheticDefaultImports", ["esModuleInterop"]],
   ["esModuleInterop", ["allowSyntheticDefaultImports"]],
@@ -132,12 +168,12 @@ export const defaultsForOptions = {
   allowSyntheticDefaultImports: 'module === "system" or esModuleInterop',
   allowUmdGlobalAccess: "false",
   allowUnreachableCode: "undefined",
-  allowUnusedLabels: "false",
-  alwaysStrict: "`false`, unless `strict` is set",
+  allowUnusedLabels: "undefined",
   charset: "utf8",
   checkJs: "false",
-  composite: "true",
-  declaration: "false",
+  composite: "false",
+  alwaysStrict: "`false`, unless [`strict`](#strict) is set",
+  declaration: "`false`, unless [`composite`](#composite) is set",
   declarationDir: " n/a",
   declarationMap: "false",
   diagnostics: "false",
@@ -147,13 +183,13 @@ export const defaultsForOptions = {
   emitDeclarationOnly: "false",
   esModuleInterop: "false",
   exclude:
-    '`["node_modules", "bower_components", "jspm_packages"]`, plus the value of `outDir` if one is specified.',
+    '`["node_modules", "bower_components", "jspm_packages"]`, plus the value of [`outDir`](#outDir) if one is specified.',
   extendedDiagnostics: "false",
   forceConsistentCasingInFileNames: "false",
   generateCpuProfile: " profile.cpuprofile",
   importHelpers: "false",
-  include: ' `[]` if `files` is specified, otherwise `["**/*"]`',
-  incremental: "`true` if `composite`, `false` otherwise",
+  include: ' `[]` if [`files`](#files) is specified, otherwise `["**/*"]`',
+  incremental: "`true` if [`composite`](#composite), `false` otherwise",
   inlineSourceMap: "false",
   inlineSources: "false",
   isolatedModules: "false",
@@ -173,9 +209,9 @@ export const defaultsForOptions = {
   noEmitOnError: "false",
   noErrorTruncation: "false",
   noFallthroughCasesInSwitch: "false",
-  noImplicitAny: "`false`, unless `strict` is set",
+  noImplicitAny: "`false`, unless [`strict`](#strict) is set",
   noImplicitReturns: "false",
-  noImplicitThis: "`false`, unless `strict` is set",
+  noImplicitThis: "`false`, unless [`strict`](#strict) is set",
   noImplicitUseStrict: "false",
   noPropertyAccessFromIndexSignature: "false",
   noLib: "false",
@@ -198,16 +234,17 @@ export const defaultsForOptions = {
   skipLibCheck: "false",
   sourceMap: "false",
   strict: "false",
-  strictBindCallApply: "`false`, unless `strict` is set",
-  strictFunctionTypes: "`false`, unless `strict` is set",
-  strictPropertyInitialization: "`false`, unless `strict` is set",
-  strictNullChecks: "`false`, unless `strict` is set",
+  strictBindCallApply: "`false`, unless [`strict`](#strict) is set",
+  strictFunctionTypes: "`false`, unless [`strict`](#strict) is set",
+  useUnknownInCatchVariables: "`false`, unless [`strict`](#strict) is set",
+  strictPropertyInitialization: "`false`, unless [`strict`](#strict) is set",
+  strictNullChecks: "`false`, unless [`strict`](#strict) is set",
   suppressExcessPropertyErrors: "false",
   suppressImplicitAnyIndexErrors: "false",
   target: "ES3",
   traceResolution: "false",
   tsBuildInfoFile: ".tsbuildinfo",
-  useDefineForClassFields: "false",
+  useDefineForClassFields: "`true` for ES2022 and above, including ESNext.",
 };
 
 export const allowedValues = {
@@ -226,11 +263,12 @@ export const allowedValues = {
     "`ESNext`",
   ],
   module: [
-    "`CommonJS` (default if `target` is `ES3` or `ES5`)",
+    "`CommonJS` (default if [`target`](#target) is `ES3` or `ES5`)",
     "",
-    "`ES6`/`ES2015` (synonymous, default for `target` `ES6` and higher)",
-    "",
+    "`ES6`",
+    "`ES2015`",
     "`ES2020`",
+    "",
     "`None`",
     "`UMD`",
     "`AMD`",
@@ -250,9 +288,10 @@ export const allowedValues = {
 };
 
 export const releaseToConfigsMap: { [key: string]: AnOption[] } = {
+  "4.4": ["exactOptionalPropertyTypes", "useUnknownInCatchVariables"],
   "4.3": ["noImplicitOverride"],
   "4.2": ["noPropertyAccessFromIndexSignature", "explainFiles"],
-  "4.1": ["jsxImportSource", "noUncheckedIndexedAccess"],
+  "4.1": ["jsxImportSource", "noUncheckedIndexedAccess", "disableFilenameBasedTypeAcquisition"],
   "4.0": ["jsxFragmentFactory", "disableReferencedProjectLoad"],
   "3.8": [
     "assumeChangesOnlyAffectDirectDependencies",

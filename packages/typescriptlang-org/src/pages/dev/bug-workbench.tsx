@@ -20,6 +20,7 @@ import { workbenchMarkdownPlugin } from "../../components/workbench/plugins/mark
 import { workbenchReferencePlugin } from "../../components/workbench/plugins/docs"
 import { createDefaultMapFromCDN } from "@typescript/vfs"
 import { twoslasher, TwoSlashReturn } from "@typescript/twoslash"
+import { getPlaygroundUrls } from "../../lib/playgroundURLs";
 
 type TwoSlashReturns = import("@typescript/twoslash").TwoSlashReturn
 
@@ -54,14 +55,16 @@ const Play: React.FC<Props> = (props) => {
         const nightlyJSON = await nightlyLookup.json()
         tsVersionParam = nightlyJSON.version
       }
-
+      // Allow prod/staging builds to set a custom commit prefix to bust caches
+      const {sandboxRoot, playgroundRoot} = getPlaygroundUrls()
+            
       // @ts-ignore
       const re: any = global.require
       re.config({
         paths: {
           vs: `https://typescript.azureedge.net/cdn/${tsVersionParam}/monaco/min/vs`,
-          "typescript-sandbox": withPrefix('/js/sandbox'),
-          "typescript-playground": withPrefix('/js/playground'),
+          "typescript-sandbox": sandboxRoot,
+          "typescript-playground": playgroundRoot,
           "unpkg": "https://unpkg.com/",
           "local": "http://localhost:5000"
         },
@@ -90,7 +93,7 @@ const Play: React.FC<Props> = (props) => {
           text: localStorage.getItem('sandbox-history') || i("play_default_code_sample"),
           compilerOptions: {},
           domID: "monaco-editor-embed",
-          useJavaScript: !!params.get("useJavaScript"),
+          filetype: "ts",
           acquireTypes: !localStorage.getItem("disable-ata"),
           supportTwoslashCompilerOptions: true,
           monacoSettings: {

@@ -79,7 +79,7 @@ type NameOrId<T extends number | string> = T extends number
   : NameLabel;
 ```
 
-We can then use that conditional type to simplify out overloads down to a single function with no overloads.
+We can then use that conditional type to simplify our overloads down to a single function with no overloads.
 
 ```ts twoslash
 interface IdLabel {
@@ -109,7 +109,7 @@ let c = createLabel(Math.random() ? "hello" : 42);
 ### Conditional Type Constraints
 
 Often, the checks in a conditional type will provide us with some new information.
-Just like with narrowing with type guards can give us a more specific type, the true branch of a conditional type will further constraint generics by the type we check against.
+Just like with narrowing with type guards can give us a more specific type, the true branch of a conditional type will further constrain generics by the type we check against.
 
 For example, let's take the following:
 
@@ -126,10 +126,6 @@ type MessageOf<T extends { message: unknown }> = T["message"];
 
 interface Email {
   message: string;
-}
-
-interface Dog {
-  bark(): void;
 }
 
 type EmailMessageContents = MessageOf<Email>;
@@ -238,7 +234,7 @@ type StrArrOrNumArr = ToArray<string | number>;
 //   ^?
 ```
 
-What happens here is that `StrOrNumArray` distributes on:
+What happens here is that `StrArrOrNumArr ` distributes on:
 
 ```ts twoslash
 type StrArrOrNumArr =
@@ -269,7 +265,7 @@ To avoid that behavior, you can surround each side of the `extends` keyword with
 ```ts twoslash
 type ToArrayNonDist<Type> = [Type] extends [any] ? Type[] : never;
 
-// 'StrOrNumArr' is no longer a union.
-type StrOrNumArr = ToArrayNonDist<string | number>;
+// 'StrArrOrNumArr' is no longer a union.
+type StrArrOrNumArr = ToArrayNonDist<string | number>;
 //   ^?
 ```

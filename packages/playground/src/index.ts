@@ -11,6 +11,7 @@ import {
   activatePlugin,
   createDragBar,
   setupSidebarToggle,
+  createNavigationSection,
 } from "./createElements"
 import { runWithCustomLogs } from "./sidebar/runtime"
 import { createExporter } from "./exporter"
@@ -22,6 +23,7 @@ import { allowConnectingToLocalhost, activePlugins, addCustomPlugin } from "./si
 import { createUtils, PluginUtils } from "./pluginUtils"
 import type React from "react"
 import { settingsPlugin, getPlaygroundPlugins } from "./sidebar/settings"
+import { gistPoweredNavBar } from "./navigation"
 
 export { PluginUtils } from "./pluginUtils"
 
@@ -76,7 +78,31 @@ export const setupPlayground = (
   react: typeof React
 ) => {
   const playgroundParent = sandbox.getDomNode().parentElement!.parentElement!.parentElement!
-  const dragBar = createDragBar()
+  // UI to the left
+
+  const leftNav = createNavigationSection()
+  playgroundParent.insertBefore(leftNav, sandbox.getDomNode().parentElement!.parentElement!)
+
+  const dragBarLeft = createDragBar("left")
+  playgroundParent.insertBefore(dragBarLeft, sandbox.getDomNode().parentElement!.parentElement!)
+
+  leftNav.style.display = "none"
+  dragBarLeft.style.display = "none"
+
+  const showNav = () => {
+    const right = document.getElementsByClassName("playground-sidebar").item(0)!
+    const middle = document.getElementById("editor-container")!
+    middle.style.width = `calc(100% - ${right.clientWidth + 180}px)`
+
+    leftNav.style.display = "block"
+    leftNav.style.width = "180px"
+    leftNav.style.minWidth = "180px"
+    leftNav.style.maxWidth = "180px"
+    dragBarLeft.style.display = "block"
+  }
+
+  // UI to the right
+  const dragBar = createDragBar("right")
   playgroundParent.appendChild(dragBar)
 
   const sidebar = createSidebar()
@@ -186,6 +212,12 @@ export const setupPlayground = (
     const plugin = getCurrentPlugin()
     if (model && plugin.modelChanged) plugin.modelChanged(sandbox, model, container)
     if (model && plugin.modelChangedDebounce) plugin.modelChangedDebounce(sandbox, model, container)
+
+    const alwaysUpdateURL = !localStorage.getItem("disable-save-on-type")
+    if (alwaysUpdateURL) {
+      const newURL = sandbox.createURLQueryWithCompilerOptions(sandbox)
+      window.history.replaceState({}, "", newURL)
+    }
   })
 
   const skipInitiallySettingHash = document.location.hash && document.location.hash.includes("example/")
@@ -358,7 +390,7 @@ export const setupPlayground = (
 
       runWithCustomLogs(run, i)
 
-      const isJS = sandbox.config.useJavaScript
+      const isJS = sandbox.config.filetype === "js"
       ui.flashInfo(i(isJS ? "play_run_js" : "play_run_ts"))
       return false
     }
@@ -474,13 +506,12 @@ export const setupPlayground = (
   const languageSelector = document.getElementById("language-selector") as HTMLSelectElement
   if (languageSelector) {
     const params = new URLSearchParams(location.search)
-    languageSelector.options.selectedIndex = params.get("useJavaScript") ? 1 : 0
+    const options = ["ts", "d.ts", "js"]
+    languageSelector.options.selectedIndex = options.indexOf(params.get("filetype") || "ts")
 
     languageSelector.onchange = () => {
-      const useJavaScript = languageSelector.value === "JavaScript"
-      const query = sandbox.createURLQueryWithCompilerOptions(sandbox, {
-        useJavaScript: useJavaScript ? true : undefined,
-      })
+      const filetype = options[Number(languageSelector.selectedIndex || 0)]
+      const query = sandbox.createURLQueryWithCompilerOptions(sandbox, { filetype })
       const fullURL = `${document.location.protocol}//${document.location.host}${document.location.pathname}${query}`
       // @ts-ignore
       document.location = fullURL
@@ -614,6 +645,11 @@ export const setupPlayground = (
     setTimeout(() => {
       document.getElementById("whatisnew-button")?.click()
     }, 100)
+  }
+
+  // Grab the contents of a Gist
+  if (location.hash.startsWith("#gist/")) {
+    gistPoweredNavBar(sandbox, ui, showNav)
   }
 
   return playground

@@ -22,7 +22,7 @@ const conforms: OnlyBoolsAndHorses = {
 };
 ```
 
-A mapped type is a generic type which uses a union created [via a `keyof`](/docs/handbook/2/indexed-access-types.html) to iterate through the keys of one type to create another:
+A mapped type is a generic type which uses a union of `PropertyKey`s (frequently created [via a `keyof`](/docs/handbook/2/indexed-access-types.html)) to iterate through keys to create a type:
 
 ```ts twoslash
 type OptionsFlags<Type> = {
@@ -30,7 +30,7 @@ type OptionsFlags<Type> = {
 };
 ```
 
-In this example, `OptionFlags` will take all the properties from the type `Type` and change their values to be a boolean.
+In this example, `OptionsFlags` will take all the properties from the type `Type` and change their values to be a boolean.
 
 ```ts twoslash
 type OptionsFlags<Type> = {

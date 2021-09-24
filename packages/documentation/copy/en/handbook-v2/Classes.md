@@ -69,7 +69,7 @@ pt.x = "0";
 
 #### `--strictPropertyInitialization`
 
-The `strictPropertyInitialization` setting controls whether class fields need to be initialized in the constructor.
+The [`strictPropertyInitialization`](/tsconfig#strictPropertyInitialization) setting controls whether class fields need to be initialized in the constructor.
 
 ```ts twoslash
 // @errors: 2564
@@ -248,22 +248,43 @@ class C {
 
 TypeScript has some special inference rules for accessors:
 
-- If no `set` exists, the property is automatically `readonly`
-- The type of the setter parameter is inferred from the return type of the getter
-- If the setter parameter has a type annotation, it must match the return type of the getter
+- If `get` exists but no `set`, the property is automatically `readonly`
+- If the type of the setter parameter is not specified, it is inferred from the return type of the getter
 - Getters and setters must have the same [Member Visibility](#member-visibility)
 
-It is not possible to have accessors with different types for getting and setting.
+Since [TypeScript 4.3](https://devblogs.microsoft.com/typescript/announcing-typescript-4-3/), it is possible to have accessors with different types for getting and setting.
 
-If you have a getter without a setter, the field is automatically `readonly`
+```ts twoslash
+class Thing {
+  _size = 0;
+
+  get size(): number {
+    return this._size;
+  }
+
+  set size(value: string | number | boolean) {
+    let num = Number(value);
+
+    // Don't allow NaN, Infinity, etc
+
+    if (!Number.isFinite(num)) {
+      this._size = 0;
+      return;
+    }
+
+    this._size = num;
+  }
+}
+```
 
 ### Index Signatures
 
-Classes can declare index signatures; these work the same as [Index Signatures](#index-signatures) for other object types:
+Classes can declare index signatures; these work the same as [Index Signatures for other object types](/docs/handbook/2/objects.html#index-signatures):
 
 ```ts twoslash
 class MyClass {
   [s: string]: boolean | ((s: string) => boolean);
+
   check(s: string) {
     return this[s] as boolean;
   }
@@ -495,7 +516,7 @@ This means that the base class constructor saw its own value for `name` during i
 
 #### Inheriting Built-in Types
 
-> Note: If you don't plan to inherit from built-in types like `Array`, `Error`, `Map`, etc., you may skip this section
+> Note: If you don't plan to inherit from built-in types like `Array`, `Error`, `Map`, etc. or your compilation target is explicitely set to `ES6`/`ES2015` or above, you may skip this section
 
 In ES2015, constructors which return an object implicitly substitute the value of `this` for any callers of `super(...)`.
 It is necessary for generated constructor code to capture any potential return value of `super(...)` and replace it with `this`.
@@ -553,7 +574,7 @@ You can use TypeScript to control whether certain methods or properties are visi
 ### `public`
 
 The default visibility of class members is `public`.
-A `public` member can be accessed by anywhere:
+A `public` member can be accessed anywhere:
 
 ```ts twoslash
 class Greeter {
@@ -640,7 +661,7 @@ Java, for example, considers this to be legal.
 On the other hand, C# and C++ chose that this code should be illegal.
 
 TypeScript sides with C# and C++ here, because accessing `x` in `Derived2` should only be legal from `Derived2`'s subclasses, and `Derived1` isn't one of them.
-Moreover, if accessing `x` through a `Derived2` reference is illegal (which it certainly should be!), then accessing it through a base class reference should never improve the situation.
+Moreover, if accessing `x` through a `Derived1` reference is illegal (which it certainly should be!), then accessing it through a base class reference should never improve the situation.
 
 See also [Why Can’t I Access A Protected Member From A Derived Class?](https://blogs.msdn.microsoft.com/ericlippert/2005/11/09/why-cant-i-access-a-protected-member-from-a-derived-class/) which explains more of C#'s reasoning.
 
@@ -704,7 +725,8 @@ class A {
 
 #### Caveats
 
-Like other aspects of TypeScript's type system, `private` and `protected` are only enforced during type checking.
+Like other aspects of TypeScript's type system, `private` and `protected` [are only enforced during type checking](https://www.typescriptlang.org/play?removeComments=true&target=99&ts=4.3.4#code/PTAEGMBsEMGddAEQPYHNQBMCmVoCcsEAHPASwDdoAXLUAM1K0gwQFdZSA7dAKWkoDK4MkSoByBAGJQJLAwAeAWABQIUH0HDSoiTLKUaoUggAW+DHorUsAOlABJcQlhUy4KpACeoLJzrI8cCwMGxU1ABVPIiwhESpMZEJQTmR4lxFQaQxWMm4IZABbIlIYKlJkTlDlXHgkNFAAbxVQTIAjfABrAEEC5FZOeIBeUAAGAG5mmSw8WAroSFIqb2GAIjMiIk8VieVJ8Ar01ncAgAoASkaAXxVr3dUwGoQAYWpMHBgCYn1rekZmNg4eUi0Vi2icoBWJCsNBWoA6WE8AHcAiEwmBgTEtDovtDaMZQLM6PEoQZbA5wSk0q5SO4vD4-AEghZoJwLGYEIRwNBoqAzFRwCZCFUIlFMXECdSiAhId8YZgclx0PsiiVqOVOAAaUAFLAsxWgKiC35MFigfC0FKgSAVVDTSyk+W5dB4fplHVVR6gF7xJrKFotEk-HXIRE9PoDUDDcaTAPTWaceaLZYQlmoPBbHYx-KcQ7HPDnK43FQqfY5+IMDDISPJLCIuqoc47UsuUCofAME3Vzi1r3URvF5QV5A2STtPDdXqunZDgDaYlHnTDrrEAF0dm28B3mDZg6HJwN1+2-hg57ulwNV2NQGoZbjYfNrYiENBwEFaojFiZQK08C-4fFKTVCozWfTgfFgLkeT5AUqiAA).
+
 This means that JavaScript runtime constructs like `in` or simple property lookup can still access a `private` or `protected` member:
 
 ```ts twoslash
@@ -720,7 +742,59 @@ const s = new MySafe();
 console.log(s.secretKey);
 ```
 
-If you need to protect values in your class from malicious actors, you should use mechanisms that offer hard runtime privacy, such as closures, weak maps, or [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields).
+`private` also allows access using bracket notation during type checking. This makes `private`-declared fields potentially easier to access for things like unit tests, with the drawback that these fields are _soft private_ and don't strictly enforce privacy.
+
+```ts twoslash
+// @errors: 2341
+class MySafe {
+  private secretKey = 12345;
+}
+
+const s = new MySafe();
+
+// Not allowed during type checking
+console.log(s.secretKey);
+
+// OK
+console.log(s["secretKey"]);
+```
+
+Unlike TypeScripts's `private`, JavaScript's [private fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields) (`#`) remain private after compilation and do not provide the previously mentioned escape hatches like bracket notation access, making them _hard private_.
+
+```ts twoslash
+class Dog {
+  #barkAmount = 0;
+  personality = "happy";
+
+  constructor() {}
+}
+```
+
+```ts twoslash
+// @target: esnext
+// @showEmit
+class Dog {
+  #barkAmount = 0;
+  personality = "happy";
+
+  constructor() {}
+}
+```
+
+When compiling to ES2021 or less, TypeScript will use WeakMaps in place of `#`.
+
+```ts twoslash
+// @target: es2015
+// @showEmit
+class Dog {
+  #barkAmount = 0;
+  personality = "happy";
+
+  constructor() {}
+}
+```
+
+If you need to protect values in your class from malicious actors, you should use mechanisms that offer hard runtime privacy, such as closures, WeakMaps, or private fields. Note that these added privacy checks during runtime could affect performance.
 
 ## Static Members
 
@@ -803,6 +877,30 @@ function doSomething() {}
 const MyHelperObject = {
   dosomething() {},
 };
+```
+
+## `static` Blocks in Classes
+
+Static blocks allow you to write a sequence of statements with their own scope that can access private fields within the containing class. This means that we can write initialization code with all the capabilities of writing statements, no leakage of variables, and full access to our class's internals.
+
+```ts twoslash
+declare function loadLastInstances(): any[]
+// ---cut---
+class Foo {
+    static #count = 0;
+
+    get count() {
+        return Foo.#count;
+    }
+
+    static {
+        try {
+            const lastInstances = loadLastInstances();
+            Foo.#count += lastInstances.length;
+        }
+        catch {}
+    }
+}
 ```
 
 ## Generic Classes
@@ -945,11 +1043,11 @@ const g = c.getName;
 console.log(g());
 ```
 
-This method takes the opposite trade-offs of the arrow function approach:
+This method makes the opposite trade-offs of the arrow function approach:
 
 - JavaScript callers might still use the class method incorrectly without realizing it
 - Only one function per class definition gets allocated, rather than one per class instance
-- Base method definitions can still be called via `super.`
+- Base method definitions can still be called via `super`.
 
 ## `this` Types
 
@@ -1150,7 +1248,7 @@ These members must exist inside an _abstract class_, which cannot be directly in
 The role of abstract classes is to serve as a base class for subclasses which do implement all the abstract members.
 When a class doesn't have any abstract members, it is said to be _concrete_.
 
-Let's look at an example
+Let's look at an example:
 
 ```ts twoslash
 // @errors: 2511

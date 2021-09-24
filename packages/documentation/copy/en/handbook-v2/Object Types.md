@@ -13,7 +13,7 @@ As we've seen, they can be anonymous:
 ```ts twoslash
 function greet(person: { name: string; age: number }) {
   //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  return "Hello " + person.age;
+  return "Hello " + person.name;
 }
 ```
 
@@ -27,7 +27,7 @@ interface Person {
 }
 
 function greet(person: Person) {
-  return "Hello " + person.age;
+  return "Hello " + person.name;
 }
 ```
 
@@ -41,7 +41,7 @@ type Person = {
 };
 
 function greet(person: Person) {
-  return "Hello " + person.age;
+  return "Hello " + person.name;
 }
 ```
 
@@ -84,29 +84,8 @@ In this example, both `xPos` and `yPos` are considered optional.
 We can choose to provide either of them, so every call above to `paintShape` is valid.
 All optionality really says is that if the property _is_ set, it better have a specific type.
 
-```ts twoslash
-interface Shape {}
-declare function getShape(): Shape;
 
-// ---cut---
-interface PaintOptions {
-  shape: Shape;
-  xPos?: number;
-  //  ^
-  yPos?: number;
-  //  ^
-}
-
-function paintShape(opts: PaintOptions) {
-  // ...
-}
-
-const shape = getShape();
-paintShape({ shape });
-paintShape({ shape, xPos: 100 });
-```
-
-We can also read from those properties - but when we do under `strictNullChecks`, TypeScript will tell us they're potentially `undefined`.
+We can also read from those properties - but when we do under [`strictNullChecks`](/tsconfig#strictNullChecks), TypeScript will tell us they're potentially `undefined`.
 
 ```ts twoslash
 interface Shape {}
@@ -194,6 +173,8 @@ function draw({ shape: Shape, xPos: number = 100 /*...*/ }) {
 In an object destructuring pattern, `shape: Shape` means "grab the property `shape` and redefine it locally as a variable named `Shape`.
 Likewise `xPos: number` creates a variable named `number` whose value is based on the parameter's `xPos`.
 
+Using [mapping modifiers](/docs/handbook/2/mapped-types.html#mapping-modifiers), you can remove `optional` attributes.
+
 ### `readonly` Properties
 
 Properties can also be marked as `readonly` for TypeScript.
@@ -265,6 +246,96 @@ console.log(readonlyPerson.age); // prints '42'
 writablePerson.age++;
 console.log(readonlyPerson.age); // prints '43'
 ```
+
+Using [mapping modifiers](/docs/handbook/2/mapped-types.html#mapping-modifiers), you can remove `readonly` attributes.
+
+### Index Signatures
+
+Sometimes you don't know all the names of a type's properties ahead of time, but you do know the shape of the values.
+
+In those cases you can use an index signature to describe the types of possible values, for example:
+
+```ts twoslash
+declare function getStringArray(): StringArray;
+// ---cut---
+interface StringArray {
+  [index: number]: string;
+}
+
+const myArray: StringArray = getStringArray();
+const secondItem = myArray[1];
+//     ^?
+```
+
+Above, we have a `StringArray` interface which has an index signature.
+This index signature states that when a `StringArray` is indexed with a `number`, it will return a `string`.
+
+An index signature property type must be either 'string' or 'number'.
+
+<details>
+    <summary>It is possible to support both types of indexers...</summary>
+    <p>It is possible to support both types of indexers, but the type returned from a numeric indexer must be a subtype of the type returned from the string indexer. This is because when indexing with a `number`, JavaScript will actually convert that to a `string` before indexing into an object. That means that indexing with `100` (a `number`) is the same thing as indexing with `"100"` (a `string`), so the two need to be consistent.</p>
+
+```ts twoslash
+// @errors: 2413
+// @strictPropertyInitialization: false
+interface Animal {
+  name: string;
+}
+
+interface Dog extends Animal {
+  breed: string;
+}
+
+// Error: indexing with a numeric string might get you a completely separate type of Animal!
+interface NotOkay {
+  [x: number]: Animal;
+  [x: string]: Dog;
+}
+```
+
+</details>
+
+While string index signatures are a powerful way to describe the "dictionary" pattern, they also enforce that all properties match their return type.
+This is because a string index declares that `obj.property` is also available as `obj["property"]`.
+In the following example, `name`'s type does not match the string index's type, and the type checker gives an error:
+
+```ts twoslash
+// @errors: 2411
+// @errors: 2411
+interface NumberDictionary {
+  [index: string]: number;
+
+  length: number; // ok
+  name: string;
+}
+```
+
+However, properties of different types are acceptable if the index signature is a union of the property types:
+
+```ts twoslash
+interface NumberOrStringDictionary {
+  [index: string]: number | string;
+  length: number; // ok, length is a number
+  name: string; // ok, name is a string
+}
+```
+
+Finally, you can make index signatures `readonly` in order to prevent assignment to their indices:
+
+```ts twoslash
+declare function getReadOnlyStringArray(): ReadonlyStringArray;
+// ---cut---
+// @errors: 2542
+interface ReadonlyStringArray {
+  readonly [index: number]: string;
+}
+
+let myArray: ReadonlyStringArray = getReadOnlyStringArray();
+myArray[2] = "Mallory";
+```
+
+You can't set `myArray[2]` because the index signature is `readonly`.
 
 ## Extending Types
 
@@ -784,7 +855,7 @@ const c: StringNumberBooleans = ["world", 3, true, false, true, false, true];
 
 Why might optional and rest elements be useful?
 Well, it allows TypeScript to correspond tuples with parameter lists.
-Tuples types can be used in [rest parameters and arguments](./More-on-Functions.md#rest-parameters-and-arguments), so that the following:
+Tuples types can be used in [rest parameters and arguments](/docs/handbook/2/functions.html#rest-parameters-and-arguments), so that the following:
 
 ```ts twoslash
 function readButtonInput(...args: [string, number, ...boolean[]]) {

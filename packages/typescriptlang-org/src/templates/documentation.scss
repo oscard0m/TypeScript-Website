@@ -22,13 +22,13 @@
 }
 
 #handbook-content {
-  margin-left: 2rem;
-  margin-right: 2rem;
+  margin: auto;
+  padding: 0 2rem;
+  max-width: 1200px;
   min-width: 0;
 
   @media (max-width: $screen-xs) {
-    margin-left: 0;
-    margin-right: 0;
+    padding: 0;
   }
 
   // Page title
@@ -116,6 +116,13 @@
         &.current {
           border-left: 2px solid #0078d4;
         }
+      }
+    }
+
+    .like-dislike-subnav {
+      #like-button,
+      #dislike-button {
+        cursor: pointer;
       }
     }
   }
@@ -359,6 +366,8 @@
     top: 0;
     left: 0;
     border-radius: 16px;
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -370,5 +379,62 @@
 .small-columns {
   @media (max-width: $screen-xs) {
     flex-direction: column !important;
+  }
+}
+
+.inline-popup {
+  background: var(--background-color);
+  position: absolute;
+  z-index: 110;
+  box-shadow: 0 30px 90px -20px rgb(0 0 0 / 30%), 0 0 1px 1px rgb(0 0 0 / 5%);
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+  min-width: 300px;
+  max-width: 400px;
+  border-radius: 2px;
+  transition: opacity 0.5s;
+
+  .inline-popup-container {
+    display: flex;
+
+    a.inline-popup-extract {
+      max-height: 140px;
+      overflow: hidden;
+      margin: 16px;
+      display: block;
+      color: var(--text-color);
+      text-decoration: none;
+      position: relative;
+
+      h5 {
+        margin-top: 0;
+      }
+
+      &::after {
+        content: " ";
+        position: absolute;
+        bottom: 0;
+        width: 25%;
+        height: 20px;
+        background-color: transparent;
+        pointer-events: none;
+      }
+
+      div {
+        margin: 0;
+
+        code {
+          background-color: var(--inline-code-background-color);
+          border-radius: 2px;
+          padding: 2px 4px;
+        }
+      }
+    }
+  }
+
+  &.popup-fade-in {
+    -webkit-animation: 0.1s ease forwards;
+    animation: 0.1s ease forwards;
   }
 }
